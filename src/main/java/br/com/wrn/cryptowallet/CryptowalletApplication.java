@@ -2,13 +2,15 @@ package br.com.wrn.cryptowallet;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.batch.JobExecutionExitCodeGenerator;
+import org.springframework.context.ConfigurableApplicationContext;
 
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class })
+@SpringBootApplication
 public class CryptowalletApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CryptowalletApplication.class, args);
+		ConfigurableApplicationContext runner = SpringApplication.run(CryptowalletApplication.class, args);
+		System.exit(SpringApplication.exit(runner, new JobExecutionExitCodeGenerator()));
 	}
 
 }
