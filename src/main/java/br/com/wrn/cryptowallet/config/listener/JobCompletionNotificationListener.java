@@ -1,4 +1,4 @@
-package br.com.wrn.cryptowallet.config;
+package br.com.wrn.cryptowallet.config.listener;
 
 import br.com.wrn.cryptowallet.model.Crypto;
 import br.com.wrn.cryptowallet.model.Result;
@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 
@@ -28,18 +30,25 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 	}
 
 	@Override
+	public void beforeJob(JobExecution jobExecution) {
+		log.info("Now is %s".formatted(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
+	}
+
+	@Override
 	public void afterJob(JobExecution jobExecution) {
 		if(jobExecution.getStatus() == BatchStatus.COMPLETED) {
-			log.info("!!! JOB FINISHED! Time to verify the results");
+			log.debug("!!! JOB FINISHED! Time to verify the results");
 
 			List<Crypto> result = cryptoService.getCryptoList();
 
-			result.forEach(crypto -> log.info("Found <{{}}> in the database.", crypto));
+			result.forEach(crypto -> log.debug("Found <{{}}> in the database.", crypto));
 
-			Crypto best = result.stream().max(Comparator.comparing(Crypto::getPerformance)).get();
-			Crypto worst = result.stream().min(Comparator.comparing(Crypto::getPerformance)).get();
+			Crypto best = result.stream().max(Comparator.comparing(Crypto::getPerformance)).orElseThrow();
+			Crypto worst = result.stream().min(Comparator.comparing(Crypto::getPerformance)).orElseThrow();
 
-			BigDecimal total = result.stream().map(crypto -> crypto.getQuantity().multiply(crypto.getHistoricPrice())).reduce(BigDecimal.ZERO, BigDecimal::add);
+			BigDecimal total = result.stream()
+					.map(crypto -> crypto.getQuantity().multiply(crypto.getHistoricPrice()))
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 			BigDecimal myTotal = BigDecimal.ZERO;
 			for (Crypto crypto : result) {
@@ -47,14 +56,14 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 				myTotal = myTotal.add(totalIndividual);
 			}
 
-			log.info(
-					String.valueOf(
-							new Result(total,
-									best.getAsset(), best.getPerformance(),
-									worst.getAsset(), worst.getPerformance())));
+			Result totalResult = new Result(total,
+					best.getAsset(), best.getPerformance(),
+					worst.getAsset(), worst.getPerformance());
+
+			log.info(totalResult.toString());
 
 		} else {
-			log.info("Not yet finished");
+			log.debug("Not yet finished");
 		}
 	}
 }

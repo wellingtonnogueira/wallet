@@ -1,5 +1,6 @@
 package br.com.wrn.cryptowallet.config;
 
+import br.com.wrn.cryptowallet.config.listener.JobCompletionNotificationListener;
 import br.com.wrn.cryptowallet.config.processor.CryptoItemProcessor;
 import br.com.wrn.cryptowallet.model.Crypto;
 import br.com.wrn.cryptowallet.service.CoincapService;
@@ -49,7 +50,7 @@ public class BatchConfig {
 
     @Bean
     public Job importCryptoJob(JobRepository jobRepository,
-                             JobCompletionNotificationListener listener, Step step1) {
+                           JobCompletionNotificationListener listener, Step step1) {
         return new JobBuilder("importCryptoJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)

@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class CryptoItemProcessor implements ItemProcessor<Crypto, Crypto> {
@@ -24,6 +26,10 @@ public class CryptoItemProcessor implements ItemProcessor<Crypto, Crypto> {
     @Override
     public Crypto process(Crypto item) throws Exception {
 
+        log.info("Submitted Request %s at %s".formatted(
+                item.getAsset(),
+                LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
+
         List<AssetHistoryDetail> assetData = coincapService.getHistoryPrice(item);
 
         if(assetData.size() != 1) {
@@ -33,7 +39,7 @@ public class CryptoItemProcessor implements ItemProcessor<Crypto, Crypto> {
 
         service.saveOrUpdateCryptoPerformance(item, history);
 
-        log.info("Crypto Item: %s".formatted(item));
+        log.debug("Crypto Item: %s".formatted(item));
 
         return item;
     }

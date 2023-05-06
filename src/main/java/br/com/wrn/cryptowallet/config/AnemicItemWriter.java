@@ -8,7 +8,6 @@ package br.com.wrn.cryptowallet.config;
 import br.com.wrn.cryptowallet.entity.CryptoEntity;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.InitializingBean;
 
 // This class was created because the step on SpringBatch requires a writer.
 // But it doesn't need to do a thing, it was done on Processor class.

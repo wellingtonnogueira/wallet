@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CryptoServiceImpl implements CryptoService {
@@ -34,7 +33,7 @@ public class CryptoServiceImpl implements CryptoService {
 
         CryptoEntity.CryptoEntityBuilder builder = CryptoEntity.builder();
         if(optional.isPresent()) {
-            log.info("Crypto already exists");
+            log.debug("Crypto already exists");
             CryptoEntity saved = optional.get();
             builder
                 .id(saved.getId())
@@ -47,7 +46,7 @@ public class CryptoServiceImpl implements CryptoService {
                 .quantity(saved.getQuantity());
 
         } else {
-            log.info("Crypto didn't exist yet");
+            log.debug("Crypto didn't exist yet");
             builder
                 .asset(item.getAsset())
                 .price(item.getPrice())

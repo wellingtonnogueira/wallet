@@ -20,9 +20,17 @@ public class CryptoEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String asset;
+
+    @Column(precision = 128, scale = 32)
     private BigDecimal quantity;
+
+    @Column(precision = 128, scale = 32)
     private BigDecimal price;
+
+    @Column(precision = 128, scale = 32)
     private BigDecimal historicPrice;
+
+    @Column(precision = 128, scale = 32)
     private BigDecimal performance;
 
     @Override
