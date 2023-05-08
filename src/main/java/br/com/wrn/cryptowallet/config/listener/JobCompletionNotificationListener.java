@@ -1,6 +1,5 @@
 package br.com.wrn.cryptowallet.config.listener;
 
-import br.com.wrn.cryptowallet.model.Crypto;
 import br.com.wrn.cryptowallet.model.Result;
 import br.com.wrn.cryptowallet.service.CryptoService;
 import org.slf4j.Logger;
@@ -11,11 +10,8 @@ import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.List;
 
 @Component
 public class JobCompletionNotificationListener implements JobExecutionListener {
@@ -31,39 +27,16 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
 	@Override
 	public void beforeJob(JobExecution jobExecution) {
-		log.info("Now is %s".formatted(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
+		// Logging the moment of process being started.
+		log.info(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")).formatted("Now is %s"));
 	}
 
 	@Override
 	public void afterJob(JobExecution jobExecution) {
+		//It logs the final result.
 		if(jobExecution.getStatus() == BatchStatus.COMPLETED) {
-			log.debug("!!! JOB FINISHED! Time to verify the results");
-
-			List<Crypto> result = cryptoService.getCryptoList();
-
-			result.forEach(crypto -> log.debug("Found <{{}}> in the database.", crypto));
-
-			Crypto best = result.stream().max(Comparator.comparing(Crypto::getPerformance)).orElseThrow();
-			Crypto worst = result.stream().min(Comparator.comparing(Crypto::getPerformance)).orElseThrow();
-
-			BigDecimal total = result.stream()
-					.map(crypto -> crypto.getQuantity().multiply(crypto.getHistoricPrice()))
-					.reduce(BigDecimal.ZERO, BigDecimal::add);
-
-			BigDecimal myTotal = BigDecimal.ZERO;
-			for (Crypto crypto : result) {
-				BigDecimal totalIndividual = crypto.getQuantity().multiply(crypto.getHistoricPrice());
-				myTotal = myTotal.add(totalIndividual);
-			}
-
-			Result totalResult = new Result(total,
-					best.getAsset(), best.getPerformance(),
-					worst.getAsset(), worst.getPerformance());
-
-			log.info(totalResult.toString());
-
-		} else {
-			log.debug("Not yet finished");
+			Result totalResult = cryptoService.getPerformanceResult();
+			log.info("{}", totalResult.toString());
 		}
 	}
 }

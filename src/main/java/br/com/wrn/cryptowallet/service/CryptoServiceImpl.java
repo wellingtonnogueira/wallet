@@ -2,6 +2,7 @@ package br.com.wrn.cryptowallet.service;
 
 import br.com.wrn.cryptowallet.entity.CryptoEntity;
 import br.com.wrn.cryptowallet.model.Crypto;
+import br.com.wrn.cryptowallet.model.Result;
 import br.com.wrn.cryptowallet.model.coincap.AssetHistoryDetail;
 import br.com.wrn.cryptowallet.repository.CryptoRepository;
 import jakarta.transaction.Transactional;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +23,7 @@ public class CryptoServiceImpl implements CryptoService {
     private static final Logger log = LoggerFactory.getLogger(CryptoServiceImpl.class);
 
     @Autowired
-    public CryptoRepository repository;
+    private CryptoRepository repository;
 
     @Override
     @Transactional
@@ -66,9 +68,19 @@ public class CryptoServiceImpl implements CryptoService {
     }
 
     @Override
-    public List<Crypto> getCryptoList() {
+    public Result getPerformanceResult() {
         List<CryptoEntity> all = repository.findAll();
-        return all.stream()
-                .map(CryptoEntity::toCrypto).toList();
+        List<Crypto> result = all.stream().map(CryptoEntity::toCrypto).toList();
+
+        Crypto best = result.stream().max(Comparator.comparing(Crypto::getPerformance)).orElseThrow();
+        Crypto worst = result.stream().min(Comparator.comparing(Crypto::getPerformance)).orElseThrow();
+
+        BigDecimal total = result.stream()
+                .map(crypto -> crypto.getQuantity().multiply(crypto.getHistoricPrice()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new Result(total,
+                best.getAsset(), best.getPerformance(),
+                worst.getAsset(), worst.getPerformance());
     }
 }

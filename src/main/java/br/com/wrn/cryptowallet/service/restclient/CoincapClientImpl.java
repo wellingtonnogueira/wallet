@@ -43,7 +43,8 @@ public class CoincapClientImpl implements CoincapClient {
     public AssetHistory getAssetHistory(String assetId) {
         String url = coincapHost + "assets/{assetId}/history?interval={interval}&start={start}&end={end}";
 
-        return this.restTemplate.getForObject(url, AssetHistory.class, assetId, "d1", 1617753600000L, 1617753601000L);
+        return this.restTemplate.getForObject(url, AssetHistory.class,
+                assetId, "d1", 1617753600000L, 1617753601000L);
 
     }
 }
